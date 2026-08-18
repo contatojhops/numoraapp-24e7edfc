@@ -14,14 +14,15 @@ export const pct = (v: number | null | undefined) =>
 
 export const dateBR = (iso: string | null | undefined) => {
   if (!iso) return "—";
-  const [y, m, d] = iso.slice(0, 10).split("-");
-  return `${d}/${m}/${y}`;
+  const s = iso.slice(0, 10);
+  return `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
 };
 
 export const todayISO = () => new Date().toISOString().slice(0, 10);
 
 export const monthLabel = (iso: string) => {
-  const [y, m] = iso.slice(0, 7).split("-");
+  const y = iso.slice(0, 4);
+  const m = iso.slice(5, 7);
   const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
   return `${meses[Number(m) - 1]}/${y.slice(2)}`;
 };
