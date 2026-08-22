@@ -16,6 +16,7 @@ import { Route as AuthenticatedContasRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDreRouteImport } from './routes/_authenticated/dre'
 import { Route as AuthenticatedFluxoCaixaRouteImport } from './routes/_authenticated/fluxo-caixa'
+import { Route as AuthenticatedFolhaRouteImport } from './routes/_authenticated/folha'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 
 const IndexRoute = IndexRouteImport.update({
@@ -52,6 +53,11 @@ const AuthenticatedFluxoCaixaRoute = AuthenticatedFluxoCaixaRouteImport.update({
   path: '/fluxo-caixa',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFolhaRoute = AuthenticatedFolhaRouteImport.update({
+  id: '/folha',
+  path: '/folha',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dre': typeof AuthenticatedDreRoute
   '/fluxo-caixa': typeof AuthenticatedFluxoCaixaRoute
+  '/folha': typeof AuthenticatedFolhaRoute
   '/metas': typeof AuthenticatedMetasRoute
 }
 export interface FileRoutesByTo {
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dre': typeof AuthenticatedDreRoute
   '/fluxo-caixa': typeof AuthenticatedFluxoCaixaRoute
+  '/folha': typeof AuthenticatedFolhaRoute
   '/metas': typeof AuthenticatedMetasRoute
 }
 export interface FileRoutesById {
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dre': typeof AuthenticatedDreRoute
   '/_authenticated/fluxo-caixa': typeof AuthenticatedFluxoCaixaRoute
+  '/_authenticated/folha': typeof AuthenticatedFolhaRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
 }
 export interface FileRouteTypes {
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dre'
     | '/fluxo-caixa'
+    | '/folha'
     | '/metas'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dre'
     | '/fluxo-caixa'
+    | '/folha'
     | '/metas'
   id:
     | '__root__'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/dre'
     | '/_authenticated/fluxo-caixa'
+    | '/_authenticated/folha'
     | '/_authenticated/metas'
   fileRoutesById: FileRoutesById
 }
@@ -175,6 +187,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFluxoCaixaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/folha': {
+      id: '/_authenticated/folha'
+      path: '/folha'
+      fullPath: '/folha'
+      preLoaderRoute: typeof AuthenticatedFolhaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/metas': {
       id: '/_authenticated/metas'
       path: '/metas'
@@ -190,6 +209,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDreRoute: typeof AuthenticatedDreRoute
   AuthenticatedFluxoCaixaRoute: typeof AuthenticatedFluxoCaixaRoute
+  AuthenticatedFolhaRoute: typeof AuthenticatedFolhaRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
 }
 
@@ -198,6 +218,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDreRoute: AuthenticatedDreRoute,
   AuthenticatedFluxoCaixaRoute: AuthenticatedFluxoCaixaRoute,
+  AuthenticatedFolhaRoute: AuthenticatedFolhaRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
 }
 
