@@ -194,7 +194,10 @@ function Lista({ modo }: { modo: Modo }) {
 
   async function abrirComprovante(path: string) {
     const { data, error } = await supabase.storage.from("comprovantes").createSignedUrl(path, 60);
-    if (error || !data) return toast.error("Não foi possível abrir o comprovante");
+    if (error || !data) {
+      toast.error("Não foi possível abrir o comprovante");
+      return;
+    }
     window.open(data.signedUrl, "_blank");
   }
 
