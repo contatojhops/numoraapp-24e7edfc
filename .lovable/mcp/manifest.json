@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "sdk_version": "0.28.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://fsghggbltyqbgddrvpiy.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "numora-app",
+      "version": "0.1.0",
+      "title": "Numora App"
+    },
+    "tools": [
+      {
+        "name": "listar_lancamentos",
+        "title": "Listar lançamentos",
+        "description": "Lista lançamentos do fluxo de caixa (entradas e saídas) por período e tipo.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "data_inicio": {
+              "description": "Data inicial (YYYY-MM-DD).",
+              "type": "string"
+            },
+            "data_fim": {
+              "description": "Data final (YYYY-MM-DD).",
+              "type": "string"
+            },
+            "tipo": {
+              "description": "Filtrar por tipo de lançamento.",
+              "type": "string",
+              "enum": [
+                "entrada",
+                "saida"
+              ]
+            },
+            "limite": {
+              "default": 50,
+              "description": "Máximo de registros.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "criar_lancamento",
+        "title": "Criar lançamento",
+        "description": "Registra um novo lançamento de entrada ou saída no fluxo de caixa.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "descricao": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Descrição do lançamento."
+            },
+            "valor": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Valor em reais."
+            },
+            "tipo": {
+              "type": "string",
+              "enum": [
+                "entrada",
+                "saida"
+              ],
+              "description": "Entrada (receita) ou saída (despesa)."
+            },
+            "data": {
+              "description": "Data do lançamento (YYYY-MM-DD). Padrão: hoje.",
+              "type": "string"
+            },
+            "forma_pagamento": {
+              "description": "Forma de pagamento (pix, dinheiro, cartao...).",
+              "type": "string"
+            },
+            "observacoes": {
+              "description": "Observações adicionais.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "descricao",
+            "valor",
+            "tipo"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "listar_titulos",
+        "title": "Listar contas a pagar/receber",
+        "description": "Lista títulos de contas a pagar ou a receber, com filtro por status e vencimento.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "enum": [
+                "pagar",
+                "receber"
+              ],
+              "description": "Qual carteira consultar."
+            },
+            "status": {
+              "description": "Status do título (ex: pendente, pago, recebido).",
+              "type": "string"
+            },
+            "vencimento_ate": {
+              "description": "Somente títulos com vencimento até esta data (YYYY-MM-DD).",
+              "type": "string"
+            },
+            "limite": {
+              "default": 50,
+              "description": "Máximo de registros.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          },
+          "required": [
+            "tipo"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "resumo_financeiro",
+        "title": "Resumo financeiro",
+        "description": "Resume entradas, saídas e resultado do período, além de contas pendentes a pagar e a receber.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "data_inicio": {
+              "type": "string",
+              "description": "Data inicial do período (YYYY-MM-DD)."
+            },
+            "data_fim": {
+              "type": "string",
+              "description": "Data final do período (YYYY-MM-DD)."
+            }
+          },
+          "required": [
+            "data_inicio",
+            "data_fim"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
