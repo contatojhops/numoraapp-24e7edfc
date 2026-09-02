@@ -38,7 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   async function sair() {
     await supabase.auth.signOut();
-    navigate({ to: "/auth" });
+    navigate({ to: "/auth", search: {} });
   }
 
   return (
