@@ -36,16 +36,27 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
 
+  function apos() {
+    if (next) {
+      window.location.href = next;
+      return;
+    }
+    navigate({ to: "/dashboard" });
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
+      if (!data.session) return;
+      if (next) window.location.href = next;
+      else navigate({ to: "/dashboard" });
     });
-  }, [navigate]);
+  }, [navigate, next]);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
@@ -56,7 +67,7 @@ function AuthPage() {
       toast.error("Não foi possível entrar: " + error.message);
       return;
     }
-    navigate({ to: "/dashboard" });
+    apos();
   }
 
   async function cadastrar(e: React.FormEvent) {
@@ -65,7 +76,10 @@ function AuthPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password: senha,
-      options: { data: { nome }, emailRedirectTo: window.location.origin },
+      options: {
+        data: { nome },
+        emailRedirectTo: next ? window.location.origin + next : window.location.origin,
+      },
     });
     setLoading(false);
     if (error) {
@@ -77,14 +91,14 @@ function AuthPage() {
 
   async function google() {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: next ? window.location.origin + next : window.location.origin,
     });
     if (result.error) {
       toast.error("Falha no login com Google");
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/dashboard" });
+    apos();
   }
 
   return (
