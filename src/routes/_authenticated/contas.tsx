@@ -125,6 +125,36 @@ function Lista({ modo }: { modo: Modo }) {
     recorrente: false,
   });
 
+  const { data: contasBancarias = [] } = useContas();
+  const [fInicio, setFInicio] = useState(inicioMesAtual());
+  const [fFim, setFFim] = useState(fimMesAtual());
+  const [baixaItem, setBaixaItem] = useState<(typeof itens)[number] | null>(null);
+  const [baixaForm, setBaixaForm] = useState({
+    valor: "",
+    data: todayISO(),
+    conta_id: "",
+    forma_pagamento: "pix",
+  });
+
+  function abrirBaixa(item: (typeof itens)[number]) {
+    setBaixaForm({
+      valor: String(Number(item.valor).toFixed(2)).replace(".", ","),
+      data: todayISO(),
+      conta_id: item.conta_id ?? contasBancarias[0]?.id ?? "",
+      forma_pagamento: "pix",
+    });
+    setBaixaItem(item);
+  }
+
+  // Vencidos pendentes aparecem sempre, mesmo fora do período filtrado.
+  const visiveis = itens.filter((item) => {
+    const st = statusEfetivo(item.status, item.vencimento, statusPago as "pago" | "recebido");
+    if (st === "atrasado") return true;
+    if (fInicio && item.vencimento < fInicio) return false;
+    if (fFim && item.vencimento > fFim) return false;
+    return true;
+  });
+
   const criar = useMutation({
     mutationFn: async () => {
       const parcelas = Math.max(1, Number(form.total_parcelas || 1));
