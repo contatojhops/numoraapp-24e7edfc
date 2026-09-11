@@ -18,7 +18,25 @@ export const dateBR = (iso: string | null | undefined) => {
   return `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
 };
 
-export const todayISO = () => new Date().toISOString().slice(0, 10);
+export const todayISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+const isoDia = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/** Primeiro dia do mês atual (YYYY-MM-DD) */
+export const inicioMesAtual = () => {
+  const d = new Date();
+  return isoDia(new Date(d.getFullYear(), d.getMonth(), 1));
+};
+
+/** Último dia do mês atual (YYYY-MM-DD) */
+export const fimMesAtual = () => {
+  const d = new Date();
+  return isoDia(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+};
 
 export const monthLabel = (iso: string) => {
   const y = iso.slice(0, 4);

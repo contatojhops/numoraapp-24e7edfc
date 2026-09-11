@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789160648625,
+      "tag": "0000_acesso_por_papel_e_vinculo_lancamento",
+      "breakpoints": true
+    }
+  ]
+}

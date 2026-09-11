@@ -161,6 +161,7 @@ export type Database = {
           descricao: string
           fornecedor_id: string | null
           id: string
+          lancamento_id: string | null
           pago_em: string | null
           parcela: number
           recorrente: boolean
@@ -178,6 +179,7 @@ export type Database = {
           descricao: string
           fornecedor_id?: string | null
           id?: string
+          lancamento_id?: string | null
           pago_em?: string | null
           parcela?: number
           recorrente?: boolean
@@ -195,6 +197,7 @@ export type Database = {
           descricao?: string
           fornecedor_id?: string | null
           id?: string
+          lancamento_id?: string | null
           pago_em?: string | null
           parcela?: number
           recorrente?: boolean
@@ -226,6 +229,13 @@ export type Database = {
             referencedRelation: "fornecedores"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contas_pagar_lancamento_id_fkey"
+            columns: ["lancamento_id"]
+            isOneToOne: false
+            referencedRelation: "lancamentos"
+            referencedColumns: ["id"]
+          },
         ]
       }
       contas_receber: {
@@ -237,6 +247,7 @@ export type Database = {
           created_at: string
           descricao: string
           id: string
+          lancamento_id: string | null
           parcela: number
           recebido_em: string | null
           recorrente: boolean
@@ -254,6 +265,7 @@ export type Database = {
           created_at?: string
           descricao: string
           id?: string
+          lancamento_id?: string | null
           parcela?: number
           recebido_em?: string | null
           recorrente?: boolean
@@ -271,6 +283,7 @@ export type Database = {
           created_at?: string
           descricao?: string
           id?: string
+          lancamento_id?: string | null
           parcela?: number
           recebido_em?: string | null
           recorrente?: boolean
@@ -300,6 +313,13 @@ export type Database = {
             columns: ["conta_id"]
             isOneToOne: false
             referencedRelation: "contas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contas_receber_lancamento_id_fkey"
+            columns: ["lancamento_id"]
+            isOneToOne: false
+            referencedRelation: "lancamentos"
             referencedColumns: ["id"]
           },
         ]
@@ -610,6 +630,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      tem_acesso: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "colaborador"

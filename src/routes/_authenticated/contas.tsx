@@ -26,11 +26,14 @@ import {
   statusEfetivo,
   useCategorias,
   useClientes,
+  useContas,
   useContasPagar,
   useContasReceber,
   useFornecedores,
 } from "@/lib/finance";
-import { brl, dateBR, todayISO } from "@/lib/format";
+import { brl, dateBR, fimMesAtual, inicioMesAtual, todayISO } from "@/lib/format";
+
+const FORMAS = ["pix", "boleto", "transferência", "cartão", "dinheiro"];
 
 export const Route = createFileRoute("/_authenticated/contas")({
   head: () => ({
@@ -122,6 +125,36 @@ function Lista({ modo }: { modo: Modo }) {
     recorrente: false,
   });
 
+  const { data: contasBancarias = [] } = useContas();
+  const [fInicio, setFInicio] = useState(inicioMesAtual());
+  const [fFim, setFFim] = useState(fimMesAtual());
+  const [baixaItem, setBaixaItem] = useState<(typeof itens)[number] | null>(null);
+  const [baixaForm, setBaixaForm] = useState({
+    valor: "",
+    data: todayISO(),
+    conta_id: "",
+    forma_pagamento: "pix",
+  });
+
+  function abrirBaixa(item: (typeof itens)[number]) {
+    setBaixaForm({
+      valor: String(Number(item.valor).toFixed(2)).replace(".", ","),
+      data: todayISO(),
+      conta_id: item.conta_id ?? contasBancarias[0]?.id ?? "",
+      forma_pagamento: "pix",
+    });
+    setBaixaItem(item);
+  }
+
+  // Vencidos pendentes aparecem sempre, mesmo fora do período filtrado.
+  const visiveis = itens.filter((item) => {
+    const st = statusEfetivo(item.status, item.vencimento, statusPago as "pago" | "recebido");
+    if (st === "atrasado") return true;
+    if (fInicio && item.vencimento < fInicio) return false;
+    if (fFim && item.vencimento > fFim) return false;
+    return true;
+  });
+
   const criar = useMutation({
     mutationFn: async () => {
       const parcelas = Math.max(1, Number(form.total_parcelas || 1));
@@ -152,18 +185,45 @@ function Lista({ modo }: { modo: Modo }) {
   });
 
   const baixar = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async () => {
+      const item = baixaItem!;
+      const valor = Number(baixaForm.valor.replace(",", "."));
+      const { data: userData } = await supabase.auth.getUser();
+      const { data: lanc, error: erroLanc } = await supabase
+        .from("lancamentos")
+        .insert({
+          tipo: modo === "pagar" ? "saida" : "entrada",
+          descricao: item.descricao,
+          valor,
+          data: baixaForm.data,
+          categoria_id: item.categoria_id,
+          conta_id: baixaForm.conta_id,
+          forma_pagamento: baixaForm.forma_pagamento,
+          observacoes: modo === "pagar" ? "Baixa de conta a pagar" : "Baixa de conta a receber",
+          criado_por: userData.user?.id ?? null,
+        })
+        .select("id")
+        .single();
+      if (erroLanc) throw erroLanc;
+
       const patch =
         modo === "pagar"
-          ? { status: "pago", pago_em: todayISO() }
-          : { status: "recebido", recebido_em: todayISO() };
-      const { error } = await supabase.from(tabela as never).update(patch as never).eq("id", id);
+          ? { status: "pago", pago_em: baixaForm.data }
+          : { status: "recebido", recebido_em: baixaForm.data };
+      const { error } = await supabase
+        .from(tabela as never)
+        .update({ ...patch, conta_id: baixaForm.conta_id, lancamento_id: lanc.id } as never)
+        .eq("id", item.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success(modo === "pagar" ? "Conta marcada como paga" : "Recebimento confirmado");
+      toast.success(modo === "pagar" ? "Pagamento registrado no fluxo de caixa" : "Recebimento registrado no fluxo de caixa");
+      setBaixaItem(null);
       qc.invalidateQueries({ queryKey });
+      qc.invalidateQueries({ queryKey: ["lancamentos"] });
+      qc.invalidateQueries({ queryKey: ["contas"] });
     },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const excluir = useMutation({

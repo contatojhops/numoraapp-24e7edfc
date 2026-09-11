@@ -372,6 +372,7 @@ function ClientesTab() {
 }
 
 function UsuariosTab() {
+  const qc = useQueryClient();
   const { data: usuarios = [] } = useQuery({
     queryKey: ["usuarios-config"],
     queryFn: async () => {
@@ -383,23 +384,41 @@ function UsuariosTab() {
       if (e2) throw e2;
       return (perfis ?? []).map((p) => ({
         ...p,
-        role: (papeis ?? []).find((r) => r.user_id === p.id)?.role ?? "colaborador",
+        role: (papeis ?? []).find((r) => r.user_id === p.id)?.role ?? null,
       }));
     },
+  });
+
+  const definirPapel = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: "admin" | "colaborador" | null }) => {
+      const del = await supabase.from("user_roles").delete().eq("user_id", userId);
+      if (del.error) throw del.error;
+      if (role) {
+        const { error } = await supabase.from("user_roles").insert({ user_id: userId, role });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Permissão atualizada");
+      qc.invalidateQueries({ queryKey: ["usuarios-config"] });
+      qc.invalidateQueries({ queryKey: ["role"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <Painel titulo="Usuários do sistema">
       <p className="mb-4 text-sm text-muted-foreground">
-        Novos usuários entram como colaboradores ao criar a conta. O primeiro cadastro do sistema recebe o papel de
-        administrador.
+        Apenas o primeiro cadastro do sistema vira administrador. Os demais ficam pendentes, sem acesso a nenhum dado,
+        até que um administrador conceda a permissão aqui.
       </p>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>E-mail</TableHead>
-            <TableHead className="text-right">Papel</TableHead>
+            <TableHead>Papel</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -407,13 +426,46 @@ function UsuariosTab() {
             <TableRow key={u.id}>
               <TableCell>{u.nome}</TableCell>
               <TableCell className="text-muted-foreground">{u.email}</TableCell>
-              <TableCell className="text-right">
+              <TableCell>
                 <Badge
                   variant="outline"
-                  className={u.role === "admin" ? "border-primary/40 bg-primary/15 text-primary" : "border-border"}
+                  className={
+                    u.role === "admin"
+                      ? "border-primary/40 bg-primary/15 text-primary"
+                      : u.role
+                        ? "border-border"
+                        : "border-warning/40 bg-warning/15 text-warning"
+                  }
                 >
-                  {u.role}
+                  {u.role ?? "pendente"}
                 </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-wrap justify-end gap-2">
+                  {u.role !== "colaborador" && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => definirPapel.mutate({ userId: u.id, role: "colaborador" })}
+                    >
+                      Conceder acesso como Colaborador
+                    </Button>
+                  )}
+                  {u.role !== "admin" && (
+                    <Button size="sm" onClick={() => definirPapel.mutate({ userId: u.id, role: "admin" })}>
+                      Tornar administrador
+                    </Button>
+                  )}
+                  {u.role && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => definirPapel.mutate({ userId: u.id, role: null })}
+                    >
+                      Revogar
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}

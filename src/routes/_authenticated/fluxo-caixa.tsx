@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { calcularSaldo, useCategorias, useContas, useLancamentos } from "@/lib/finance";
-import { brl, dateBR, downloadCSV, todayISO } from "@/lib/format";
+import { brl, dateBR, downloadCSV, fimMesAtual, inicioMesAtual, todayISO } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/fluxo-caixa")({
   head: () => ({
@@ -56,8 +56,8 @@ function FluxoCaixa() {
   const [fTipo, setFTipo] = useState("todos");
   const [fCategoria, setFCategoria] = useState("todas");
   const [fConta, setFConta] = useState("todas");
-  const [fInicio, setFInicio] = useState("");
-  const [fFim, setFFim] = useState("");
+  const [fInicio, setFInicio] = useState(inicioMesAtual());
+  const [fFim, setFFim] = useState(fimMesAtual());
 
   const [form, setForm] = useState({
     tipo: "entrada",
@@ -288,6 +288,18 @@ function FluxoCaixa() {
         <div className="space-y-1.5">
           <Label className="text-xs">Até</Label>
           <Input type="date" value={fFim} onChange={(e) => setFFim(e.target.value)} />
+        </div>
+        <div className="md:col-span-5 flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setFInicio("");
+              setFFim("");
+            }}
+          >
+            Ver todos os períodos
+          </Button>
         </div>
       </section>
 
