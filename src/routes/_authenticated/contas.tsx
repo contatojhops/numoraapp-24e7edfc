@@ -155,18 +155,45 @@ function Lista({ modo }: { modo: Modo }) {
   });
 
   const baixar = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async () => {
+      const item = baixaItem!;
+      const valor = Number(baixaForm.valor.replace(",", "."));
+      const { data: userData } = await supabase.auth.getUser();
+      const { data: lanc, error: erroLanc } = await supabase
+        .from("lancamentos")
+        .insert({
+          tipo: modo === "pagar" ? "saida" : "entrada",
+          descricao: item.descricao,
+          valor,
+          data: baixaForm.data,
+          categoria_id: item.categoria_id,
+          conta_id: baixaForm.conta_id,
+          forma_pagamento: baixaForm.forma_pagamento,
+          observacoes: modo === "pagar" ? "Baixa de conta a pagar" : "Baixa de conta a receber",
+          criado_por: userData.user?.id ?? null,
+        })
+        .select("id")
+        .single();
+      if (erroLanc) throw erroLanc;
+
       const patch =
         modo === "pagar"
-          ? { status: "pago", pago_em: todayISO() }
-          : { status: "recebido", recebido_em: todayISO() };
-      const { error } = await supabase.from(tabela as never).update(patch as never).eq("id", id);
+          ? { status: "pago", pago_em: baixaForm.data }
+          : { status: "recebido", recebido_em: baixaForm.data };
+      const { error } = await supabase
+        .from(tabela as never)
+        .update({ ...patch, conta_id: baixaForm.conta_id, lancamento_id: lanc.id } as never)
+        .eq("id", item.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success(modo === "pagar" ? "Conta marcada como paga" : "Recebimento confirmado");
+      toast.success(modo === "pagar" ? "Pagamento registrado no fluxo de caixa" : "Recebimento registrado no fluxo de caixa");
+      setBaixaItem(null);
       qc.invalidateQueries({ queryKey });
+      qc.invalidateQueries({ queryKey: ["lancamentos"] });
+      qc.invalidateQueries({ queryKey: ["contas"] });
     },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const excluir = useMutation({
