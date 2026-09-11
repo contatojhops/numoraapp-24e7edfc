@@ -26,11 +26,14 @@ import {
   statusEfetivo,
   useCategorias,
   useClientes,
+  useContas,
   useContasPagar,
   useContasReceber,
   useFornecedores,
 } from "@/lib/finance";
-import { brl, dateBR, todayISO } from "@/lib/format";
+import { brl, dateBR, fimMesAtual, inicioMesAtual, todayISO } from "@/lib/format";
+
+const FORMAS = ["pix", "boleto", "transferência", "cartão", "dinheiro"];
 
 export const Route = createFileRoute("/_authenticated/contas")({
   head: () => ({
