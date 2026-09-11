@@ -85,14 +85,20 @@ export function projetarSaldo(
   const hoje = new Date();
   const out: ProjecaoMes[] = [];
   let acumulado = saldoAtual;
+  const keyAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
   for (let i = 0; i < meses; i++) {
     const ref = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
     const key = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, "0")}`;
+    // O mês atual absorve também tudo que venceu antes e continua pendente.
+    const noMes = (venc: string) => {
+      const k = venc.slice(0, 7);
+      return key === keyAtual ? k <= key : k === key;
+    };
     const entradas = receber
-      .filter((r) => r.status !== "recebido" && r.vencimento.slice(0, 7) === key)
+      .filter((r) => r.status !== "recebido" && noMes(r.vencimento))
       .reduce((s, r) => s + Number(r.valor), 0);
     const saidas = pagar
-      .filter((p) => p.status !== "pago" && p.vencimento.slice(0, 7) === key)
+      .filter((p) => p.status !== "pago" && noMes(p.vencimento))
       .reduce((s, p) => s + Number(p.valor), 0);
     acumulado += entradas - saidas;
     out.push({
