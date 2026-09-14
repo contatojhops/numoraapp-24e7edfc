@@ -334,6 +334,32 @@ function Lista({ modo }: { modo: Modo }) {
         </Dialog>
       </div>
 
+      <section className="glass mb-4 grid gap-3 rounded-2xl p-4 md:grid-cols-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Vencimento de</Label>
+          <Input type="date" value={fInicio} onChange={(e) => setFInicio(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Até</Label>
+          <Input type="date" value={fFim} onChange={(e) => setFFim(e.target.value)} />
+        </div>
+        <div className="flex items-end justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setFInicio("");
+              setFFim("");
+            }}
+          >
+            Ver todos os períodos
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground md:col-span-3">
+          Títulos vencidos e ainda em aberto aparecem sempre, mesmo fora do período filtrado.
+        </p>
+      </section>
+
       <div className="glass overflow-x-auto rounded-2xl p-2">
         <Table>
           <TableHeader>
@@ -347,14 +373,14 @@ function Lista({ modo }: { modo: Modo }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {itens.length === 0 && (
+            {visiveis.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                  Nenhum título cadastrado.
+                  Nenhum título no período selecionado.
                 </TableCell>
               </TableRow>
             )}
-            {itens.map((item) => {
+            {visiveis.map((item) => {
               const parceiroId = (item as Record<string, unknown>)[campoParceiro] as string | null;
               const parceiro = parceiros.find((p) => p.id === parceiroId)?.nome ?? "—";
               const st = statusEfetivo(item.status, item.vencimento, statusPago as "pago" | "recebido");
@@ -371,7 +397,7 @@ function Lista({ modo }: { modo: Modo }) {
                   <TableCell>
                     <div className="flex justify-end gap-1">
                       {st !== statusPago && (
-                        <Button variant="ghost" size="icon" title="Dar baixa" onClick={() => baixar.mutate(item.id)}>
+                        <Button variant="ghost" size="icon" title="Dar baixa" onClick={() => abrirBaixa(item)}>
                           <CheckCircle2 className="size-4 text-success" />
                         </Button>
                       )}
@@ -408,6 +434,73 @@ function Lista({ modo }: { modo: Modo }) {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!baixaItem} onOpenChange={(o) => !o && setBaixaItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {modo === "pagar" ? "Confirmar pagamento" : "Confirmar recebimento"}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {baixaItem?.descricao} — vencimento {dateBR(baixaItem?.vencimento)}
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Valor (R$)</Label>
+              <Input
+                inputMode="decimal"
+                value={baixaForm.valor}
+                onChange={(e) => setBaixaForm({ ...baixaForm, valor: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{modo === "pagar" ? "Data do pagamento" : "Data do recebimento"}</Label>
+              <Input
+                type="date"
+                value={baixaForm.data}
+                onChange={(e) => setBaixaForm({ ...baixaForm, data: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Conta bancária</Label>
+              <Select
+                value={baixaForm.conta_id}
+                onValueChange={(v) => setBaixaForm({ ...baixaForm, conta_id: v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {contasBancarias.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Forma de pagamento</Label>
+              <Select
+                value={baixaForm.forma_pagamento}
+                onValueChange={(v) => setBaixaForm({ ...baixaForm, forma_pagamento: v })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {FORMAS.map((f) => (
+                    <SelectItem key={f} value={f}>{f}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => baixar.mutate()}
+              disabled={!baixaForm.valor || !baixaForm.conta_id || baixar.isPending}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
