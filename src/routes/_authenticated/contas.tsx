@@ -434,6 +434,73 @@ function Lista({ modo }: { modo: Modo }) {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!baixaItem} onOpenChange={(o) => !o && setBaixaItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {modo === "pagar" ? "Confirmar pagamento" : "Confirmar recebimento"}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {baixaItem?.descricao} — vencimento {dateBR(baixaItem?.vencimento)}
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Valor (R$)</Label>
+              <Input
+                inputMode="decimal"
+                value={baixaForm.valor}
+                onChange={(e) => setBaixaForm({ ...baixaForm, valor: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{modo === "pagar" ? "Data do pagamento" : "Data do recebimento"}</Label>
+              <Input
+                type="date"
+                value={baixaForm.data}
+                onChange={(e) => setBaixaForm({ ...baixaForm, data: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Conta bancária</Label>
+              <Select
+                value={baixaForm.conta_id}
+                onValueChange={(v) => setBaixaForm({ ...baixaForm, conta_id: v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {contasBancarias.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Forma de pagamento</Label>
+              <Select
+                value={baixaForm.forma_pagamento}
+                onValueChange={(v) => setBaixaForm({ ...baixaForm, forma_pagamento: v })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {FORMAS.map((f) => (
+                    <SelectItem key={f} value={f}>{f}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => baixar.mutate()}
+              disabled={!baixaForm.valor || !baixaForm.conta_id || baixar.isPending}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
