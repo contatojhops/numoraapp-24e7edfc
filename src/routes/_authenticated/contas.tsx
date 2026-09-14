@@ -334,6 +334,32 @@ function Lista({ modo }: { modo: Modo }) {
         </Dialog>
       </div>
 
+      <section className="glass mb-4 grid gap-3 rounded-2xl p-4 md:grid-cols-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Vencimento de</Label>
+          <Input type="date" value={fInicio} onChange={(e) => setFInicio(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Até</Label>
+          <Input type="date" value={fFim} onChange={(e) => setFFim(e.target.value)} />
+        </div>
+        <div className="flex items-end justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setFInicio("");
+              setFFim("");
+            }}
+          >
+            Ver todos os períodos
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground md:col-span-3">
+          Títulos vencidos e ainda em aberto aparecem sempre, mesmo fora do período filtrado.
+        </p>
+      </section>
+
       <div className="glass overflow-x-auto rounded-2xl p-2">
         <Table>
           <TableHeader>
@@ -347,14 +373,14 @@ function Lista({ modo }: { modo: Modo }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {itens.length === 0 && (
+            {visiveis.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                  Nenhum título cadastrado.
+                  Nenhum título no período selecionado.
                 </TableCell>
               </TableRow>
             )}
-            {itens.map((item) => {
+            {visiveis.map((item) => {
               const parceiroId = (item as Record<string, unknown>)[campoParceiro] as string | null;
               const parceiro = parceiros.find((p) => p.id === parceiroId)?.nome ?? "—";
               const st = statusEfetivo(item.status, item.vencimento, statusPago as "pago" | "recebido");
