@@ -397,7 +397,7 @@ function Lista({ modo }: { modo: Modo }) {
                   <TableCell>
                     <div className="flex justify-end gap-1">
                       {st !== statusPago && (
-                        <Button variant="ghost" size="icon" title="Dar baixa" onClick={() => baixar.mutate(item.id)}>
+                        <Button variant="ghost" size="icon" title="Dar baixa" onClick={() => abrirBaixa(item)}>
                           <CheckCircle2 className="size-4 text-success" />
                         </Button>
                       )}
