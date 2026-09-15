@@ -49,17 +49,41 @@ function MetasPage() {
   const [orcAberto, setOrcAberto] = useState(false);
   const competenciaAtual = `${todayISO().slice(0, 7)}-01`;
 
-  const [metaForm, setMetaForm] = useState({
+  const formMetaVazio = {
     titulo: "",
     periodo_inicio: competenciaAtual,
     periodo_fim: todayISO(),
     valor_alvo: "",
-  });
-  const [orcForm, setOrcForm] = useState({
+  };
+  const [metaForm, setMetaForm] = useState(formMetaVazio);
+  const [metaEditando, setMetaEditando] = useState<Meta | null>(null);
+
+  const formOrcVazio = {
     categoria_id: "",
     competencia: competenciaAtual,
     valor_orcado: "",
-  });
+  };
+  const [orcForm, setOrcForm] = useState(formOrcVazio);
+  const [orcEditando, setOrcEditando] = useState<Orcamento | null>(null);
+
+  const abrirEdicaoMeta = (m: Meta) => {
+    setMetaForm({
+      titulo: m.titulo,
+      periodo_inicio: m.periodo_inicio,
+      periodo_fim: m.periodo_fim,
+      valor_alvo: String(m.valor_alvo).replace(".", ","),
+    });
+    setMetaEditando(m);
+  };
+
+  const abrirEdicaoOrcamento = (o: Orcamento) => {
+    setOrcForm({
+      categoria_id: o.categoria_id,
+      competencia: o.competencia,
+      valor_orcado: String(o.valor_orcado).replace(".", ","),
+    });
+    setOrcEditando(o);
+  };
 
   const criarMeta = useMutation({
     mutationFn: async () => {
