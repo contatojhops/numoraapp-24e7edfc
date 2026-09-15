@@ -65,9 +65,16 @@ function StatusBadge({ status }: { status: string }) {
 function ContasPage() {
   const { data: pagar = [] } = useContasPagar();
   const { data: receber = [] } = useContasReceber();
+  const [fInicio, setFInicio] = useState(inicioMesAtual());
+  const [fFim, setFFim] = useState(fimMesAtual());
 
-  const totalPagar = pagar.filter((p) => p.status !== "pago").reduce((s, p) => s + Number(p.valor), 0);
-  const totalReceber = receber.filter((r) => r.status !== "recebido").reduce((s, r) => s + Number(r.valor), 0);
+  const noPeriodo = (venc: string) => (!fInicio || venc >= fInicio) && (!fFim || venc <= fFim);
+  const totalPagar = pagar
+    .filter((p) => p.status !== "pago" && noPeriodo(p.vencimento))
+    .reduce((s, p) => s + Number(p.valor), 0);
+  const totalReceber = receber
+    .filter((r) => r.status !== "recebido" && noPeriodo(r.vencimento))
+    .reduce((s, r) => s + Number(r.valor), 0);
 
   return (
     <>
@@ -89,17 +96,29 @@ function ContasPage() {
           <TabsTrigger value="receber">A receber</TabsTrigger>
         </TabsList>
         <TabsContent value="pagar">
-          <Lista modo="pagar" />
+          <Lista modo="pagar" fInicio={fInicio} fFim={fFim} setFInicio={setFInicio} setFFim={setFFim} />
         </TabsContent>
         <TabsContent value="receber">
-          <Lista modo="receber" />
+          <Lista modo="receber" fInicio={fInicio} fFim={fFim} setFInicio={setFInicio} setFFim={setFFim} />
         </TabsContent>
       </Tabs>
     </>
   );
 }
 
-function Lista({ modo }: { modo: Modo }) {
+function Lista({
+  modo,
+  fInicio,
+  fFim,
+  setFInicio,
+  setFFim,
+}: {
+  modo: Modo;
+  fInicio: string;
+  fFim: string;
+  setFInicio: (v: string) => void;
+  setFFim: (v: string) => void;
+}) {
   const qc = useQueryClient();
   const tabela = modo === "pagar" ? "contas_pagar" : "contas_receber";
   const queryKey = [tabela];
@@ -126,8 +145,6 @@ function Lista({ modo }: { modo: Modo }) {
   });
 
   const { data: contasBancarias = [] } = useContas();
-  const [fInicio, setFInicio] = useState(inicioMesAtual());
-  const [fFim, setFFim] = useState(fimMesAtual());
   const [baixaItem, setBaixaItem] = useState<(typeof itens)[number] | null>(null);
   const [baixaForm, setBaixaForm] = useState({
     valor: "",
