@@ -455,14 +455,14 @@ function Lista({
                   <TableCell className="num text-right">{brl(Number(item.valor))}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" title="Editar" onClick={() => abrirEditar(item)}>
-                        <Pencil className="size-4 text-muted-foreground" />
-                      </Button>
                       {st !== statusPago && (
                         <Button variant="ghost" size="icon" title="Dar baixa" onClick={() => abrirBaixa(item)}>
                           <CheckCircle2 className="size-4 text-success" />
                         </Button>
                       )}
+                      <Button variant="ghost" size="icon" title="Editar" onClick={() => abrirEditar(item)}>
+                        <Pencil className="size-4 text-muted-foreground" />
+                      </Button>
                       {item.comprovante_url ? (
                         <Button
                           variant="ghost"
