@@ -239,7 +239,7 @@ function Lista({
       toast.success("Título atualizado");
       setEditItem(null);
       qc.invalidateQueries({ queryKey });
-ec      },
+      },
     onError: (e: Error) => toast.error(e.message),
   });
 
