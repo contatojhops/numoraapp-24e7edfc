@@ -563,6 +563,80 @@ function Lista({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!editItem} onOpenChange={(o) => !o && setEditItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar título</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {editItem?.descricao} — vencimento {dateBR(editItem?.vencimento)}
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Descrição</Label>
+              <Input
+                value={editarForm.descricao}
+                onChange={(e) => setEditarForm({ ...editarForm, descricao: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Valor (R$)</Label>
+              <Input
+                inputMode="decimal"
+                value={editarForm.valor}
+                onChange={(e) => setEditarForm({ ...editarForm, valor: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Vencimento</Label>
+              <Input
+                type="date"
+                value={editarForm.vencimento}
+                onChange={(e) => setEditarForm({ ...editarForm, vencimento: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{modo === "pagar" ? "Fornecedor" : "Cliente"}</Label>
+              <Select
+                value={editarForm.parceiro_id}
+                onValueChange={(v) => setEditarForm({ ...editarForm, parceiro_id: v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {parceiros.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Select
+                value={editarForm.categoria_id}
+                onValueChange={(v) => setEditarForm({ ...editarForm, categoria_id: v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {categorias
+                    .filter((c) => (modo === "pagar" ? c.tipo === "despesa" : c.tipo === "receita"))
+                    .map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => editar.mutate()}
+              disabled={!editarForm.descricao || !editarForm.valor || editar.isPending}
+            >
+              Salvar alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
