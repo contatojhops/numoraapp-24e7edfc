@@ -98,6 +98,30 @@ function MetasPage() {
     onSuccess: () => {
       toast.success("Meta criada");
       setMetaAberta(false);
+      setMetaForm(formMetaVazio);
+      qc.invalidateQueries({ queryKey: ["metas"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const editarMeta = useMutation({
+    mutationFn: async () => {
+      if (!metaEditando) return;
+      const { error } = await supabase
+        .from("metas")
+        .update({
+          titulo: metaForm.titulo,
+          periodo_inicio: metaForm.periodo_inicio,
+          periodo_fim: metaForm.periodo_fim,
+          valor_alvo: Number(metaForm.valor_alvo.replace(",", ".")),
+        })
+        .eq("id", metaEditando.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Meta atualizada");
+      setMetaEditando(null);
+      setMetaForm(formMetaVazio);
       qc.invalidateQueries({ queryKey: ["metas"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -118,6 +142,29 @@ function MetasPage() {
     onSuccess: () => {
       toast.success("Orçamento salvo");
       setOrcAberto(false);
+      setOrcForm(formOrcVazio);
+      qc.invalidateQueries({ queryKey: ["orcamentos"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const editarOrcamento = useMutation({
+    mutationFn: async () => {
+      if (!orcEditando) return;
+      const { error } = await supabase
+        .from("orcamentos")
+        .update({
+          categoria_id: orcForm.categoria_id,
+          competencia: orcForm.competencia,
+          valor_orcado: Number(orcForm.valor_orcado.replace(",", ".")),
+        })
+        .eq("id", orcEditando.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Orçamento atualizado");
+      setOrcEditando(null);
+      setOrcForm(formOrcVazio);
       qc.invalidateQueries({ queryKey: ["orcamentos"] });
     },
     onError: (e: Error) => toast.error(e.message),
