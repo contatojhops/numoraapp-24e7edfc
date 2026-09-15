@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Paperclip, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/app/app-shell";
 import { KpiCard } from "@/components/app/kpi-card";
@@ -163,6 +163,26 @@ function Lista({
     setBaixaItem(item);
   }
 
+  const [editItem, setEditItem] = useState<(typeof itens)[number] | null>(null);
+  const [editarForm, setEditarForm] = useState({
+    descricao: "",
+    valor: "",
+    vencimento: todayISO(),
+    parceiro_id: "",
+    categoria_id: "",
+  });
+
+  function abrirEditar(item: (typeof itens)[number]) {
+    setEditarForm({
+      descricao: item.descricao,
+      valor: String(Number(item.valor).toFixed(2)).replace(".", ","),
+      vencimento: item.vencimento,
+      parceiro_id: ((item as Record<string, unknown>)[campoParceiro] as string | null) ?? "",
+      categoria_id: item.categoria_id ?? "",
+    });
+    setEditItem(item);
+  }
+
   // Vencidos pendentes aparecem sempre, mesmo fora do período filtrado.
   const visiveis = itens.filter((item) => {
     const st = statusEfetivo(item.status, item.vencimento, statusPago as "pago" | "recebido");
@@ -198,6 +218,28 @@ function Lista({
       setForm({ ...form, descricao: "", valor: "" });
       qc.invalidateQueries({ queryKey });
     },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const editar = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from(tabela as never)
+        .update({
+          descricao: editarForm.descricao,
+          valor: Number(editarForm.valor.replace(",", ".")),
+          vencimento: editarForm.vencimento,
+          [campoParceiro]: editarForm.parceiro_id || null,
+          categoria_id: editarForm.categoria_id || null,
+        } as never)
+        .eq("id", editItem!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Título atualizado");
+      setEditItem(null);
+      qc.invalidateQueries({ queryKey });
+      },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -413,6 +455,9 @@ function Lista({
                   <TableCell className="num text-right">{brl(Number(item.valor))}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="icon" title="Editar" onClick={() => abrirEditar(item)}>
+                        <Pencil className="size-4 text-muted-foreground" />
+                      </Button>
                       {st !== statusPago && (
                         <Button variant="ghost" size="icon" title="Dar baixa" onClick={() => abrirBaixa(item)}>
                           <CheckCircle2 className="size-4 text-success" />
@@ -514,6 +559,80 @@ function Lista({
               disabled={!baixaForm.valor || !baixaForm.conta_id || baixar.isPending}
             >
               Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editItem} onOpenChange={(o) => !o && setEditItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar título</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {editItem?.descricao} — vencimento {dateBR(editItem?.vencimento)}
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Descrição</Label>
+              <Input
+                value={editarForm.descricao}
+                onChange={(e) => setEditarForm({ ...editarForm, descricao: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Valor (R$)</Label>
+              <Input
+                inputMode="decimal"
+                value={editarForm.valor}
+                onChange={(e) => setEditarForm({ ...editarForm, valor: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Vencimento</Label>
+              <Input
+                type="date"
+                value={editarForm.vencimento}
+                onChange={(e) => setEditarForm({ ...editarForm, vencimento: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{modo === "pagar" ? "Fornecedor" : "Cliente"}</Label>
+              <Select
+                value={editarForm.parceiro_id}
+                onValueChange={(v) => setEditarForm({ ...editarForm, parceiro_id: v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {parceiros.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Select
+                value={editarForm.categoria_id}
+                onValueChange={(v) => setEditarForm({ ...editarForm, categoria_id: v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {categorias
+                    .filter((c) => (modo === "pagar" ? c.tipo === "despesa" : c.tipo === "receita"))
+                    .map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => editar.mutate()}
+              disabled={!editarForm.descricao || !editarForm.valor || editar.isPending}
+            >
+              Salvar alterações
             </Button>
           </DialogFooter>
         </DialogContent>
