@@ -276,7 +276,10 @@ function MetasPage() {
                           {atingida ? "atingida" : "não atingida"}
                         </Badge>
                       )}
-                      <Button variant="ghost" size="icon" onClick={() => excluirMeta.mutate(m.id)}>
+                      <Button variant="ghost" size="icon" aria-label="Editar meta" onClick={() => abrirEdicaoMeta(m)}>
+                        <Pencil className="size-4 text-muted-foreground" />
+                      </Button>
+                      <Button variant="ghost" size="icon" aria-label="Excluir meta" onClick={() => excluirMeta.mutate(m.id)}>
                         <Trash2 className="size-4 text-muted-foreground" />
                       </Button>
                     </div>
@@ -354,7 +357,10 @@ function MetasPage() {
                           limite ultrapassado
                         </Badge>
                       )}
-                      <Button variant="ghost" size="icon" onClick={() => excluirOrcamento.mutate(o.id)}>
+                      <Button variant="ghost" size="icon" aria-label="Editar orçamento" onClick={() => abrirEdicaoOrcamento(o)}>
+                        <Pencil className="size-4 text-muted-foreground" />
+                      </Button>
+                      <Button variant="ghost" size="icon" aria-label="Excluir orçamento" onClick={() => excluirOrcamento.mutate(o.id)}>
                         <Trash2 className="size-4 text-muted-foreground" />
                       </Button>
                     </div>
