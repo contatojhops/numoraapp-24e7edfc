@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Paperclip, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/app/app-shell";
 import { KpiCard } from "@/components/app/kpi-card";
@@ -161,6 +161,26 @@ function Lista({
       forma_pagamento: "pix",
     });
     setBaixaItem(item);
+  }
+
+  const [editItem, setEditItem] = useState<(typeof itens)[number] | null>(null);
+  const [editarForm, setEditarForm] = useState({
+    descricao: "",
+    valor: "",
+    vencimento: todayISO(),
+    parceiro_id: "",
+    categoria_id: "",
+  });
+
+  function abrirEditar(item: (typeof itens)[number]) {
+    setEditarForm({
+      descricao: item.descricao,
+      valor: String(Number(item.valor).toFixed(2)).replace(".", ","),
+      vencimento: item.vencimento,
+      parceiro_id: ((item as Record<string, unknown>)[campoParceiro] as string | null) ?? "",
+      categoria_id: item.categoria_id ?? "",
+    });
+    setEditItem(item);
   }
 
   // Vencidos pendentes aparecem sempre, mesmo fora do período filtrado.
