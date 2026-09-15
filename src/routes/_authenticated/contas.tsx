@@ -221,6 +221,28 @@ function Lista({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const editar = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from(tabela as never)
+        .update({
+          descricao: editarForm.descricao,
+          valor: Number(editarForm.valor.replace(",", ".")),
+          vencimento: editarForm.vencimento,
+          [campoParceiro]: editarForm.parceiro_id || null,
+          categoria_id: editarForm.categoria_id || null,
+        } as never)
+        .eq("id", editItem!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Título atualizado");
+      setEditItem(null);
+      qc.invalidateQueries({ queryKey });
+ec      },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const baixar = useMutation({
     mutationFn: async () => {
       const item = baixaItem!;
